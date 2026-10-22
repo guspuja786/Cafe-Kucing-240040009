@@ -1,98 +1,169 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useState } from 'react';
+import {
+  Button,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+const DAFTAR_MENU = [
+  { id: '1', nama: 'Kopi Susu Catnip Cafe', harga: 20000 },
+  { id: '2', nama: 'Matcha Paw Latte', harga: 25000 },
+  { id: '3', nama: 'Croissant Ikan Tuna', harga: 18000 },
+];
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+function OrderSummary({ totalCount }: { totalCount: number }) {
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
+    <View style={styles.ringkasan}>
+      <Text style={styles.total}>
+        Total Item Dipesan: {totalCount}
+      </Text>
+
+      {totalCount >= 5 && (
+        <Text style={styles.promo}>
+          Selamat! Anda Adalah Orang Ganteng yang Mendapatkan Diskon 10%
+        </Text>
+      )}
+    </View>
+  );
+}
+
+function MenuItem({
+  nama,
+  harga,
+  onTambahPesanan,
+}: {
+  nama: string;
+  harga: number;
+  onTambahPesanan: () => void;
+}) {
+  const [qty, setQty] = useState(0);
+
+  function tambahPesanan() {
+    setQty(qty + 1);
+    onTambahPesanan();
+  }
+
+  return (
+    <View style={styles.kartu}>
+      <Text style={styles.nama}>{nama}</Text>
+
+      <Text style={styles.harga}>
+        Harga: Rp{harga.toLocaleString('id-ID')}
+      </Text>
+
+      <Text style={styles.jumlah}>
+        Jumlah dipesan: {qty}
+      </Text>
+
+      <Button
+        title="Tambah Pesanan"
+        onPress={tambahPesanan}
+        color="#795548"
+      />
+    </View>
   );
 }
 
 export default function HomeScreen() {
+  const [totalPesanan, setTotalPesanan] = useState(0);
+
+  function tambahTotalPesanan() {
+    setTotalPesanan(totalPesanan + 1);
+  }
+
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.isi}
+    >
+      <Text style={styles.header}>CAFE KUCING</Text>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+      <Text style={styles.subjudul}>
+        Tempat Nongkrong Harapan Bangsa
+      </Text>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+      <OrderSummary totalCount={totalPesanan} />
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+      <Text style={styles.judul}>Daftar Menu</Text>
+
+      {DAFTAR_MENU.map((menu) => (
+        <MenuItem
+          key={menu.id}
+          nama={menu.nama}
+          harga={menu.harga}
+          onTambahPesanan={tambahTotalPesanan}
+        />
+      ))}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
+    backgroundColor: '#FFF8F0',
   },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
+  isi: {
+    padding: 20,
+    paddingTop: 45,
+    paddingBottom: 30,
   },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
+  header: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#795548',
     textAlign: 'center',
   },
-  code: {
-    textTransform: 'uppercase',
+  subjudul: {
+    textAlign: 'center',
+    color: '#666666',
+    marginTop: 8,
+    marginBottom: 20,
   },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  ringkasan: {
+    backgroundColor: '#F1E0D0',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  total: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#49352A',
+  },
+  promo: {
+    color: '#287A3D',
+    fontWeight: 'bold',
+    marginTop: 10,
+  },
+  judul: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#795548',
+    marginBottom: 12,
+  },
+  kartu: {
+    backgroundColor: '#FFFFFF',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#E0D2C5',
+    gap: 8,
+  },
+  nama: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#49352A',
+  },
+  harga: {
+    fontSize: 15,
+    color: '#555555',
+  },
+  jumlah: {
+    marginBottom: 5,
+    color: '#555555',
   },
 });
